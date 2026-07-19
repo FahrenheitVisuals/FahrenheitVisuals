@@ -13,41 +13,36 @@
                      'DSC_0542','DSC_0571','DSC_1245','DSC_2029','DSC_0366'];
   const BGS = ['DSC_1051','DSC_0190','DSC_1383','DSC_1119','DSC_0796','DSC_1125','DSC_0234'];
 
-  /* ---------- circuit-bent TEXT hue ----------
-     Rotate the text hue OPPOSITE the background's hue rotation so the text
-     colour never lands on the background colour. Synced to the same clock the
-     WebGL shader uses (u_time = performance.now()*0.001, hueRotate * 0.15 rad/s).
-     Falls back gracefully if WebGL isn't running. */
-  (function hueDrive() {
+  /* ---------- dynamic-contrast text ----------
+     Over-bg text (.hero-sub, .cta p, nav, footer, …) uses a thermal palette but
+     FLIPS pale-hot <-> deep based on the live background brightness so it never
+     blends in. Brightness is sampled from the WebGL frame (window.__FH_bgLum). */
+  (function contrastDrive() {
     const root = document.documentElement.style;
-    const DEG = 0.15 * 180 / Math.PI;         // shader hue rotation fallback (deg/sec)
-    let cur = 300;                             // smoothed text hue
-
-    function rgb2hue(r, g, b) {
-      r /= 255; g /= 255; b /= 255;
-      const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
-      if (d < 0.0001) return null;             // grey -> no meaningful hue
-      let h;
-      if (mx === r) h = ((g - b) / d) % 6;
-      else if (mx === g) h = (b - r) / d + 2;
-      else h = (r - g) / d + 4;
-      h *= 60; if (h < 0) h += 360;
-      return h;
+    const cv = document.getElementById('bg-gl');
+    let glc = null; try { glc = cv && cv.getContext('webgl'); } catch (e) { glc = null; }
+    const SW = 40, SH = 24, px = new Uint8Array(SW * SH * 4);
+    function sampleLum() {
+      if (!glc || !cv.width) return null;
+      const rx = Math.max(0, (cv.width / 2 - SW / 2) | 0);
+      const ry = Math.max(0, (cv.height / 2 - SH / 2) | 0);
+      try { glc.readPixels(rx, ry, SW, SH, glc.RGBA, glc.UNSIGNED_BYTE, px); } catch (e) { return null; }
+      let l = 0; const n = SW * SH;
+      for (let i = 0; i < px.length; i += 4) l += 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+      return (l / n) / 255;
     }
-    // shortest-path angular lerp
-    function alerp(a, b, t) {
-      let d = ((b - a + 540) % 360) - 180;
-      return (a + d * t + 360) % 360;
-    }
+    let mode = 'light', lum = 0.2, t = 0;
+    function setLight() { root.setProperty('--txt', '#ffe2b8'); root.setProperty('--txt-edge', 'rgba(0,0,0,.92)'); }
+    function setDark() { root.setProperty('--txt', '#241305'); root.setProperty('--txt-edge', 'rgba(255,236,200,.96)'); }
     function tick() {
-      let bgHue;
-      const s = window.__FH_bgRGB;             // real sampled background colour
-      if (s) bgHue = rgb2hue(s[0], s[1], s[2]);
-      if (bgHue == null) bgHue = (performance.now() * 0.001 * DEG) % 360;
-      const targetTxt = (bgHue + 180) % 360;   // exact complement => never the bg hue
-      cur = alerp(cur, targetTxt, 0.06);        // ease so it drifts smoothly
-      root.setProperty('--cb', cur.toFixed(1));
-      root.setProperty('--cb2', ((cur + 38) % 360).toFixed(1));
+      if ((t++ % 8) === 0) {                          // sample ~7-8x/sec (cheap)
+        const L = sampleLum();
+        if (L != null) {
+          lum += (L - lum) * 0.25;
+          if (mode === 'light' && lum > 0.55) { mode = 'dark'; setDark(); }
+          else if (mode === 'dark' && lum < 0.43) { mode = 'light'; setLight(); }
+        }
+      }
       requestAnimationFrame(tick);
     }
     tick();
@@ -62,36 +57,43 @@
     setInterval(setBg, 11000);
   }
 
-  /* ---------- glitch title: subtle shake + occasional glyph scramble ---------- */
+  /* ---------- glitch title: shake + glyph scramble + flicker Korean->Japanese ---------- */
   const glitchEls = document.querySelectorAll('[data-glitch]');
   glitchEls.forEach(el => {
-    const real = el.textContent;
+    const real = el.textContent;                 // Korean (primary)
+    const alt = el.getAttribute('data-alt');     // Japanese (flicker target)
     el.setAttribute('data-text', real);
-    const pool = 'アカサタナ0123FHｦｧｨ華氏火度';
+    const pool = '가나다라마아자하0123ハカ화씨華氏火度ﾊｶ';
+    const set = s => { el.textContent = s; el.setAttribute('data-text', s); };
     function corrupt() {
-      // brief scramble then restore
-      const arr = real.split('');
-      const hits = 1 + (Math.random() * 2 | 0);
-      for (let k = 0; k < hits; k++) {
-        const idx = Math.random() * arr.length | 0;
-        arr[idx] = pool[Math.random() * pool.length | 0];
+      if (alt && Math.random() < 0.5) {
+        // flicker to the Japanese equivalent, then back to Korean
+        set(alt);
+        setTimeout(() => set(real), 110 + Math.random() * 180);
+      } else {
+        // brief character scramble
+        const arr = real.split('');
+        const hits = 1 + (Math.random() * 2 | 0);
+        for (let k = 0; k < hits; k++) arr[Math.random() * arr.length | 0] = pool[Math.random() * pool.length | 0];
+        set(arr.join(''));
+        setTimeout(() => set(real), 70 + Math.random() * 90);
       }
-      el.textContent = arr.join('');
-      el.setAttribute('data-text', arr.join(''));
-      setTimeout(() => { el.textContent = real; el.setAttribute('data-text', real); }, 70 + Math.random() * 90);
-      setTimeout(corrupt, 1400 + Math.random() * 3200);
+      setTimeout(corrupt, 1300 + Math.random() * 3000);
     }
     setTimeout(corrupt, 1500 + Math.random() * 2500);
 
-    // continuous micro-shake via transform (tiny, not much)
-    let sh = 0;
-    (function shake() {
-      sh += 0.05;
-      const dx = Math.sin(sh * 2.3) * 0.8 + (Math.random() - 0.5) * 0.6;
-      const dy = Math.cos(sh * 1.7) * 0.6 + (Math.random() - 0.5) * 0.5;
-      el.style.transform = `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px)`;
-      requestAnimationFrame(shake);
-    })();
+    // continuous micro-shake — only the big block titles (transform is a no-op on
+    // the small inline glyphs anyway, so skip their per-frame loops)
+    if (el.classList.contains('jp-title') || el.classList.contains('big')) {
+      let sh = 0;
+      (function shake() {
+        sh += 0.05;
+        const dx = Math.sin(sh * 2.3) * 0.8 + (Math.random() - 0.5) * 0.6;
+        const dy = Math.cos(sh * 1.7) * 0.6 + (Math.random() - 0.5) * 0.5;
+        el.style.transform = `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px)`;
+        requestAnimationFrame(shake);
+      })();
+    }
   });
 
   /* ---------- scroll reveal ---------- */
@@ -119,7 +121,7 @@
       corner.textContent = String(i + 1).padStart(2, '0');
       const meta = document.createElement('span');
       meta.className = 'meta';
-      meta.innerHTML = `<span>${n}</span><span>華氏</span>`;
+      meta.innerHTML = `<span>${n}</span><span>화씨</span>`;
       a.append(img, corner, meta);
       grid.appendChild(a);
       io.observe(a);

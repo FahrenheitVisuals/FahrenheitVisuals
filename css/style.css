@@ -14,16 +14,16 @@
 :root{
   --bg:#07080c;
   --bg2:#0b0d14;
-  --ink:#e8ecf2;
-  --ink-dim:#8b93a7;
-  --line:rgba(150,170,210,.16);
-  --line-hot:rgba(120,255,220,.5);
-  --iris-a:#63f5d0;   /* mint */
-  --iris-b:#7aa2ff;   /* periwinkle */
-  --iris-c:#ff6ec7;   /* magenta */
-  --iris-d:#ffd166;   /* amber */
-  --hot:#8affe4;
-  --danger:#ff4d6d;
+  --ink:#f6efe6;      /* warm near-white */
+  --ink-dim:#d6c4a8;  /* warm tan (kept light for contrast) */
+  --line:rgba(255,180,120,.18);
+  --line-hot:rgba(255,150,60,.55);
+  --iris-a:#ff9a3c;   /* thermal orange */
+  --iris-b:#ffcf4a;   /* thermal amber-yellow */
+  --iris-c:#ff4d2a;   /* thermal hot red */
+  --iris-d:#fff0c0;   /* thermal pale-hot */
+  --hot:#ffb14d;      /* main thermal accent */
+  --danger:#ff3b2f;
   --mono:"Share Tech Mono","Cascadia Code","Consolas",ui-monospace,monospace;
   --disp:"Chakra Petch","Bahnschrift","Arial Narrow",sans-serif;
   --ui:"Rajdhani","Chakra Petch","Bahnschrift",sans-serif;
@@ -31,22 +31,35 @@
   --body:"Rajdhani","Inter","Segoe UI",system-ui,sans-serif;
   --read:"Cascadia Code","Consolas",ui-monospace,monospace;
 
-  /* circuit-bent TEXT hue — JS rotates these OPPOSITE the background so
-     the text never lands on the background's color. */
-  --cb:300;
-  --cb2:338;
-  --cb-a:hsl(var(--cb) 92% 74%);
-  --cb-b:hsl(var(--cb2) 88% 64%);
-  /* dark halo so text stays separated from the bg no matter the hue */
-  --cb-halo:drop-shadow(0 0 1px rgba(0,0,0,.9)) drop-shadow(0 2px 10px rgba(0,0,0,.55));
-  --cb-glow:0 0 1px rgba(0,0,0,.9), 0 0 18px hsl(var(--cb) 90% 60% / .35), 0 2px 10px rgba(0,0,0,.6);
+  /* THERMAL text colour (infrared heat look). Fixed warm ramp; the strong
+     dark halo/edge below guarantees contrast on any background. */
+  --cb:26;            /* orange hue for hsl(var(--cb)...) usages */
+  --cb2:42;           /* amber hue */
+  --cb-a:#ff4d1f;     /* hot red-orange */
+  --cb-b:#ffab24;     /* amber */
+  --cb-halo:drop-shadow(0 0 1.4px rgba(0,0,0,.98)) drop-shadow(0 1px 1px rgba(0,0,0,.9)) drop-shadow(0 0 12px rgba(255,110,40,.5));
+  --cb-glow:0 0 1px rgba(0,0,0,.98), 0 0 3px rgba(0,0,0,.85), 0 0 20px rgba(255,120,45,.55), 0 2px 8px rgba(0,0,0,.75);
+  /* crisp dark ring for ALL solid over-bg text so nothing blends in */
+  --edge:0 0 1px rgba(0,0,0,.96), 0 0 3px rgba(0,0,0,.82), 1px 1px 1px rgba(0,0,0,.9), -1px 0 1px rgba(0,0,0,.7);
+
+  /* DYNAMIC contrast text: JS flips these between pale-hot (over dark bg) and
+     deep (over bright bg) based on the live background brightness. */
+  --txt:#ffe2b8;
+  --txt-edge:rgba(0,0,0,.92);
+  --txt-shadow:0 0 1px var(--txt-edge), 0 0 3px var(--txt-edge), 1px 1px 1px var(--txt-edge), -1px -1px 1px var(--txt-edge);
 }
 
-/* reusable circuit-bent gradient text (semi-bent, not RGB-split glitch) */
+/* reusable THERMAL gradient text (red-orange -> amber -> pale hot) */
 .cb-fill{
-  background:linear-gradient(102deg, var(--cb-a), var(--cb-b) 60%, hsl(var(--cb) 95% 80%));
+  background:linear-gradient(102deg, var(--cb-a), var(--cb-b) 55%, #fff2cf);
   -webkit-background-clip:text; background-clip:text; color:transparent;
   filter:var(--cb-halo);
+}
+
+/* guarantee separation from the busy background on all over-bg text */
+.topbar, .sec-note, footer, #audio-hud, .scroll-hint, .lb-cap,
+.avail, .form-note, .back-link, .dossier, .hero-sub, .kicker, .bio{
+  text-shadow:var(--edge);
 }
 
 *{ margin:0; padding:0; box-sizing:border-box; border-radius:0 !important; }
@@ -204,7 +217,7 @@ section{ position:relative; z-index:2; }
 .bio .glowline{ color:var(--hot); }
 .cores{ display:flex; flex-wrap:wrap; gap:8px; margin-top:22px; }
 .core-tag{ font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
-  padding:6px 12px; border:1px solid var(--line-hot); color:var(--hot); background:rgba(99,245,208,.05); }
+  padding:6px 12px; border:1px solid var(--line-hot); color:var(--hot); background:rgba(255,140,50,.05); }
 
 /* ========== GALLERY ========== */
 .gallery{ padding:26px 0 60px; }
@@ -222,9 +235,9 @@ section{ position:relative; z-index:2; }
   transition:transform .6s cubic-bezier(.2,.8,.2,1), filter .4s; }
 .tile:hover img{ transform:scale(1.05); filter:saturate(1.15) contrast(1.08) brightness(1.02); }
 .tile::after{ content:""; position:absolute; inset:0; pointer-events:none;
-  background:linear-gradient(120deg, rgba(99,245,208,.0), rgba(255,110,199,.0));
+  background:linear-gradient(120deg, rgba(255,140,50,0), rgba(255,60,30,0));
   mix-blend-mode:screen; transition:opacity .3s; opacity:0; }
-.tile:hover::after{ opacity:.5; background:linear-gradient(120deg, rgba(99,245,208,.25), rgba(122,162,255,.1) 40%, rgba(255,110,199,.28)); }
+.tile:hover::after{ opacity:.5; background:linear-gradient(120deg, rgba(255,150,50,.28), rgba(255,90,30,.14) 40%, rgba(255,60,30,.3)); }
 .tile .meta{
   position:absolute; left:0; bottom:0; right:0; padding:10px 12px;
   font-family:var(--mono); font-size:10px; letter-spacing:.16em; text-transform:uppercase;
@@ -241,7 +254,7 @@ section{ position:relative; z-index:2; }
 .lb.open{ display:flex; animation:lbin .35s ease; }
 @keyframes lbin{ from{ opacity:0; } to{ opacity:1; } }
 .lb img{ max-width:92vw; max-height:82vh; border:1px solid var(--line-hot);
-  box-shadow:0 0 60px rgba(122,162,255,.25); filter:contrast(1.03); }
+  box-shadow:0 0 60px rgba(255,120,40,.3); filter:contrast(1.03); }
 .lb .lb-cap{ position:absolute; bottom:26px; font-family:var(--mono); font-size:12px; letter-spacing:.24em; color:var(--hot); text-transform:uppercase; }
 .lb .lb-x{ position:absolute; top:22px; right:28px; font-family:var(--mono); color:var(--ink); font-size:22px; cursor:pointer; border:1px solid var(--line); padding:4px 12px; }
 .lb .lb-x:hover{ color:var(--danger); border-color:var(--danger); }
@@ -260,10 +273,10 @@ section{ position:relative; z-index:2; }
   display:inline-block; font-family:var(--mono); text-transform:uppercase; letter-spacing:.28em; font-size:14px;
   color:#04120e; background:var(--hot); padding:18px 40px; text-decoration:none; font-weight:700;
   position:relative; border:1px solid var(--hot); transition:.2s;
-  box-shadow:6px 6px 0 rgba(255,110,199,.55);
+  box-shadow:6px 6px 0 rgba(255,70,25,.6);
 }
-.btn:hover{ background:var(--iris-c); border-color:var(--iris-c); color:#0a0a0a; box-shadow:6px 6px 0 rgba(99,245,208,.6); transform:translate(-2px,-2px); }
-.btn.ghost{ background:transparent; color:var(--hot); box-shadow:6px 6px 0 rgba(122,162,255,.35); }
+.btn:hover{ background:var(--iris-c); border-color:var(--iris-c); color:#160500; box-shadow:6px 6px 0 rgba(255,170,60,.65); transform:translate(-2px,-2px); }
+.btn.ghost{ background:transparent; color:var(--hot); box-shadow:6px 6px 0 rgba(255,120,40,.45); }
 .btn.ghost:hover{ color:#04120e; background:var(--hot); }
 
 footer{
@@ -281,10 +294,10 @@ footer .jp{ font-family:var(--jp); color:var(--iris-b); }
   transition:opacity .8s, transform .8s;
 }
 #enter .big{ font-family:var(--jp); font-weight:900; font-size:clamp(70px,18vw,220px); color:#fff;
-  text-shadow:0 0 50px rgba(122,162,255,.4); }
+  text-shadow:0 0 45px rgba(255,120,40,.5), 0 0 2px rgba(0,0,0,.8); }
 #enter .en-sub{ font-family:var(--mono); font-size:12px; letter-spacing:.5em; color:var(--iris-a); margin-top:16px; text-transform:uppercase; }
 #enter .en-btn{ margin-top:44px; font-family:var(--mono); letter-spacing:.4em; font-size:14px; text-transform:uppercase;
-  color:var(--hot); border:1px solid var(--line-hot); padding:16px 44px; cursor:pointer; background:rgba(99,245,208,.04);
+  color:var(--hot); border:1px solid var(--line-hot); padding:16px 44px; cursor:pointer; background:rgba(255,140,50,.05);
   transition:.2s; }
 #enter .en-btn:hover{ background:var(--hot); color:#05120e; }
 #enter.gone{ opacity:0; transform:scale(1.15); pointer-events:none; }
@@ -292,7 +305,7 @@ footer .jp{ font-family:var(--jp); color:var(--iris-b); }
 /* transition curtain used between pages */
 #curtain{
   position:fixed; inset:0; z-index:250; pointer-events:none; opacity:0;
-  background:radial-gradient(circle at 50% 50%, rgba(99,245,208,.15), rgba(4,5,9,.98) 60%);
+  background:radial-gradient(circle at 50% 50%, rgba(255,120,40,.18), rgba(6,4,3,.98) 60%);
 }
 
 /* audio widget */
@@ -323,7 +336,7 @@ footer .jp{ font-family:var(--jp); color:var(--iris-b); }
   padding:40px clamp(22px,5vw,56px) 46px; position:relative; overflow:hidden;
 }
 .form-card::before{ content:""; position:absolute; inset:0; pointer-events:none;
-  background:linear-gradient(115deg, transparent 40%, rgba(99,245,208,.06) 50%, transparent 60%); background-size:250% 250%;
+  background:linear-gradient(115deg, transparent 40%, rgba(255,150,60,.07) 50%, transparent 60%); background-size:250% 250%;
   animation:sheen 7s linear infinite; }
 @keyframes sheen{ to{ background-position:-250% 0; } }
 .form-card .fh-top{ font-family:var(--mono); font-size:11px; letter-spacing:.3em; color:hsl(var(--cb2) 88% 68%); text-transform:uppercase; text-shadow:0 0 1px rgba(0,0,0,.8); }
@@ -336,7 +349,7 @@ footer .jp{ font-family:var(--jp); color:var(--iris-b); }
   width:100%; background:rgba(0,0,0,.35); border:1px solid var(--line); color:var(--ink);
   font-family:var(--mono); font-size:14px; padding:14px 14px; letter-spacing:.04em; outline:none; transition:.2s;
 }
-.field input:focus,.field textarea:focus,.field select:focus{ border-color:var(--hot); box-shadow:0 0 0 1px var(--hot), 0 0 22px rgba(99,245,208,.15); background:rgba(99,245,208,.03); }
+.field input:focus,.field textarea:focus,.field select:focus{ border-color:var(--hot); box-shadow:0 0 0 1px var(--hot), 0 0 22px rgba(255,140,50,.18); background:rgba(255,140,50,.04); }
 .field textarea{ resize:vertical; min-height:120px; }
 .field .hint{ font-family:var(--mono); font-size:10px; color:var(--ink-dim); margin-top:6px; letter-spacing:.08em; }
 .row2{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
@@ -350,3 +363,12 @@ footer .jp{ font-family:var(--jp); color:var(--iris-b); }
 
 .avail{ display:flex; gap:20px; flex-wrap:wrap; font-family:var(--mono); font-size:11px; letter-spacing:.14em; color:var(--ink-dim); text-transform:uppercase; margin-bottom:26px; }
 .avail b{ color:var(--hot); }
+
+/* ---- dynamic-contrast text: flips pale-hot <-> deep with the live background
+   so these (previously grey) over-bg lines never blend in ---- */
+.hero-sub, .katakana, .cta p, .sec-note, footer, .scroll-hint, .topbar nav a{
+  color:var(--txt) !important;
+  text-shadow:var(--txt-shadow);
+}
+.topbar nav a:hover{ color:var(--hot) !important; }
+.hero-sub .t, footer a{ color:var(--hot) !important; }

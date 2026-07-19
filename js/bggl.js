@@ -8,7 +8,7 @@
   const BGS = ['DSC_1051', 'DSC_0190', 'DSC_1383', 'DSC_1119', 'DSC_0796', 'DSC_1125', 'DSC_0234'];
   const canvas = document.getElementById('bg-gl');
   if (!canvas) return;
-  const gl = canvas.getContext('webgl', { antialias: false, alpha: false, premultipliedAlpha: false });
+  const gl = canvas.getContext('webgl', { antialias: false, alpha: false, premultipliedAlpha: false, preserveDrawingBuffer: true });
   if (!gl) return; // keep CSS fallback
 
   const drift = document.getElementById('bg-drift');
@@ -210,27 +210,7 @@
     gl.uniform2f(uA0, slot[0].asp[0], slot[0].asp[1]);
     gl.uniform2f(uA1, slot[1].asp[0], slot[1].asp[1]);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
-
-    // sample the REAL rendered background behind the hero title every ~8 frames
-    // and publish its average colour, so text can pick the exact complement.
-    fc++;
-    if (fc % 8 === 0) sampleBg();
-
     requestAnimationFrame(frame);
-  }
-
-  let fc = 0;
-  const SW = 48, SH = 28;
-  const spx = new Uint8Array(SW * SH * 4);
-  function sampleBg() {
-    // band across the upper-middle where the big title sits (gl y is bottom-up)
-    const rx = Math.max(0, Math.floor(canvas.width * 0.5 - SW / 2));
-    const ry = Math.max(0, Math.floor(canvas.height * 0.55 - SH / 2));
-    try { gl.readPixels(rx, ry, SW, SH, gl.RGBA, gl.UNSIGNED_BYTE, spx); }
-    catch (e) { return; }
-    let r = 0, g = 0, b = 0; const n = SW * SH;
-    for (let i = 0; i < spx.length; i += 4) { r += spx[i]; g += spx[i + 1]; b += spx[i + 2]; }
-    window.__FH_bgRGB = [r / n, g / n, b / n];
   }
 
   requestAnimationFrame(frame);
