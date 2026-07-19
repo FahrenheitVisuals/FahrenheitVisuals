@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAHRENHEIT // 予約 // Book</title>
+<meta name="description" content="Book Fahrenheit — vintage-hardware photography, Rapid City SD.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ===== GLOBAL VFX LAYERS ===== -->
+<canvas id="bg-gl"></canvas>
+<div id="bg-drift"></div>
+<canvas id="vfx-canvas"></canvas>
+<div id="vignette"></div>
+<div id="grain"></div>
+<div id="scan"></div>
+<div id="curtain"></div>
+
+<a href="index.html" class="back-link" data-nav>‹ 戻る // back to archive</a>
+
+<main class="contact-main">
+  <div class="form-card reveal in">
+    <div class="fh-top">:// SECURE UPLINK · TRANSMISSION 送信</div>
+    <h1 data-glitch>連絡</h1>
+    <div class="subj">Book Fahrenheit</div>
+
+    <div class="avail">
+      <span>:// available <b>MON–SUN</b></span>
+      <span>:// hours <b>12PM – 12AM</b></span>
+      <span>:// base <b>RAPID CITY, SD</b></span>
+    </div>
+
+    <form id="book-form" novalidate>
+      <div class="field">
+        <label>Name <span class="jp">名前</span></label>
+        <input type="text" name="name" placeholder="what should I call you?" autocomplete="name">
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label>Phone <span class="jp">電話番号</span></label>
+          <input type="tel" name="phone" placeholder="(___) ___-____" autocomplete="tel">
+        </div>
+        <div class="field">
+          <label>Email <span class="jp">メール</span></label>
+          <input type="email" name="email" placeholder="optional backup contact" autocomplete="email">
+        </div>
+      </div>
+      <div class="hint" style="margin:-10px 0 22px;font-family:var(--mono);font-size:10px;color:var(--ink-dim);letter-spacing:.08em;">:// leave at least one — phone preferred</div>
+
+      <div class="field">
+        <label>What are you looking for? <span class="jp">ご希望</span></label>
+        <select name="looking">
+          <option>Portrait / Streetwear session</option>
+          <option>Couple / Group shoot</option>
+          <option>Event coverage</option>
+          <option>Night / Atmosphere series</option>
+          <option>Vintage-hardware experiment</option>
+          <option>Something else (describe below)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Preferred day / time <span class="jp">希望日時</span></label>
+        <input type="text" name="when" placeholder="e.g. Saturday evening, golden hour">
+      </div>
+
+      <div class="field">
+        <label>Details / vision <span class="jp">詳細</span></label>
+        <textarea name="details" placeholder="mood, location ideas, references, budget — anything you want me to know"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn">Transmit // 送信</button>
+        <a href="index.html" class="btn ghost" data-nav>Cancel // 戻る</a>
+      </div>
+      <div class="sent-msg" id="sent-msg"></div>
+    </form>
+
+    <div class="form-note">
+      :// Direct lines — <a href="mailto:Fahrenheit.Support@gmail.com">Fahrenheit.Support@gmail.com</a>
+      · <a href="tel:+16057873637">(605) 787-3637</a><br>
+      :// Transmitting opens your mail app addressed to Fahrenheit with everything filled in — just hit send.
+    </div>
+  </div>
+</main>
+
+<!-- ===== AUDIO HUD ===== -->
+<div id="audio-hud" class="muted" title="mute / unmute ambience">
+  <span class="eq"><i></i><i></i><i></i><i></i><i></i></span>
+  <span>♪ <span class="tk">ambience</span></span>
+</div>
+
+<script src="js/bggl.js"></script>
+<script src="js/vfx.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/main.js"></script>
+<script src="js/contact.js"></script>
+</body>
+</html>

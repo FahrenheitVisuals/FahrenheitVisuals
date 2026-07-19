@@ -1,0 +1,7 @@
+# OS / editor junk
+desktop.ini
+Thumbs.db
+.DS_Store
+*.tmp
+
+# keep everything else — assets ARE the site
