@@ -12,7 +12,7 @@
     { src: 'assets/audio/track4.mp3', name: 'THE GREAT DIVIDE' },
   ];
   const XFADE = 6.0;          // crossfade seconds
-  const LEVEL = 0.17;         // master "elevator" quietness
+  const LEVEL = 0.34;         // master level — background, but clearly audible
   const hud = document.getElementById('audio-hud');
   const hudName = hud ? hud.querySelector('.tk') : null;
 
@@ -43,15 +43,15 @@
     master = ctx.createGain(); master.gain.value = LEVEL;
 
     filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass'; filter.frequency.value = 5200; filter.Q.value = 0.4;
+    filter.type = 'lowpass'; filter.frequency.value = 9500; filter.Q.value = 0.3;  // gentle warmth, not muffled
 
     const shaper = ctx.createWaveShaper();
     shaper.curve = softCurve(); shaper.oversample = '2x';
 
     const convolver = ctx.createConvolver();
     convolver.buffer = makeImpulse(3.2, 2.6);
-    verbGain = ctx.createGain(); verbGain.gain.value = 0.28;
-    dryGain = ctx.createGain(); dryGain.gain.value = 0.85;
+    verbGain = ctx.createGain(); verbGain.gain.value = 0.22;
+    dryGain = ctx.createGain(); dryGain.gain.value = 0.95;
 
     // chain: [players] -> filter -> shaper -> (dry + verb) -> master -> out
     filter.connect(shaper);
@@ -134,6 +134,9 @@
       started, muted,
       ctxState: ctx && ctx.state,
       active,
+      masterGain: master ? +master.gain.value.toFixed(3) : null,
+      playerGain: players[active] ? +players[active].gain.gain.value.toFixed(3) : null,
+      lowpass: filter ? filter.frequency.value : null,
       current: players[active] ? { paused: players[active].el.paused, t: +players[active].el.currentTime.toFixed(2), dur: +(players[active].el.duration || 0).toFixed(1) } : null,
     };
   };
