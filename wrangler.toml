@@ -1,0 +1,6 @@
+# Cloudflare Workers static-assets config — serves the site as static files.
+name = "fahrenheitvisuals"
+compatibility_date = "2025-06-01"
+
+[assets]
+directory = "."
