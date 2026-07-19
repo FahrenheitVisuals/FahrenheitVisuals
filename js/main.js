@@ -146,6 +146,7 @@
       lbCap.textContent = t.dataset.cap;
       if (window.FH_glitchBurst) window.FH_glitchBurst(300);
       if (window.FH_bgBurst) window.FH_bgBurst(350);
+      if (window.FH_audioGlitch) window.FH_audioGlitch(260);
     }
     document.addEventListener('click', e => {
       const tile = e.target.closest('.tile');
@@ -171,6 +172,7 @@
       if (window.FH_audioStart) window.FH_audioStart();
       if (window.FH_glitchBurst) window.FH_glitchBurst(700);
       if (window.FH_bgBurst) window.FH_bgBurst(800);
+      if (window.FH_audioGlitch) setTimeout(() => window.FH_audioGlitch(500), 400);
       setTimeout(() => enter.remove(), 900);
     };
     const btn = enter.querySelector('.en-btn');
@@ -184,6 +186,7 @@
     if (!curtain) { location.href = url; return; }
     if (window.FH_glitchBurst) window.FH_glitchBurst(600);
     if (window.FH_bgBurst) window.FH_bgBurst(700);
+    if (window.FH_audioGlitch) window.FH_audioGlitch(600);
     curtain.style.transition = 'opacity .5s';
     curtain.style.opacity = 1;
     curtain.animate(
