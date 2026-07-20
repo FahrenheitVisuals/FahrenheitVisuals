@@ -372,3 +372,66 @@ footer .jp{ font-family:var(--jp); color:var(--iris-b); }
 }
 .topbar nav a:hover{ color:var(--hot) !important; }
 .hero-sub .t, footer a{ color:var(--hot) !important; }
+
+/* ========== SOCIALS ========== */
+.socials{ display:flex; align-items:center; gap:12px; }
+.socials a{
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--hot); text-decoration:none; border:1px solid var(--line-hot);
+  padding:7px 12px; background:rgba(255,140,50,.05); transition:.2s;
+}
+.socials a:hover{ background:var(--hot); color:#05120e; }
+.socials a svg{ width:15px; height:15px; display:block; }
+.socials a:hover svg{ filter:brightness(0) saturate(0); }        /* icon goes dark on hover */
+.topbar .socials a{ padding:5px 9px; margin-left:0; }
+.topbar .socials a::after{ display:none; }                        /* no underline sweep on chips */
+
+/* ========== SERVICES PAGE ========== */
+.services-main{ position:relative; z-index:2; padding:132px 0 20px; }
+.svc-lead{ max-width:1240px; margin:0 auto; padding:0 26px; }
+.svc-lead .kicker{ margin-bottom:18px; }
+.svc-title-big{
+  font-family:var(--disp); font-weight:700; text-transform:uppercase; letter-spacing:.12em;
+  font-size:clamp(38px,9vw,96px); line-height:.95;
+  background:linear-gradient(100deg, var(--cb-a), var(--cb-b) 60%, hsl(var(--cb) 95% 82%));
+  -webkit-background-clip:text; background-clip:text; color:transparent; filter:var(--cb-halo);
+}
+.svc-title-big .jp{ font-family:var(--jp); -webkit-text-fill-color:hsl(var(--cb) 90% 76%); color:hsl(var(--cb) 90% 76%); font-size:.42em; margin-left:16px; letter-spacing:.08em; }
+.svc-intro{
+  max-width:74ch; margin:24px 0 8px; font-family:var(--body); font-size:16px; line-height:1.9; color:#d3dae8;
+  text-shadow:0 0 1px rgba(0,0,0,.85), 0 1px 6px rgba(0,0,0,.55);
+}
+.svc-intro em{ color:var(--hot); font-style:italic; }
+
+.svc-list{ max-width:1240px; margin:40px auto 0; padding:0 26px; display:grid; gap:26px; }
+.svc{
+  border:1px solid var(--line); background:linear-gradient(180deg, rgba(20,24,34,.55), rgba(9,11,16,.6));
+  padding:26px clamp(20px,3.5vw,40px) 32px; position:relative; overflow:hidden;
+}
+.svc::before{ content:""; position:absolute; top:0; left:0; width:3px; height:100%;
+  background:linear-gradient(180deg,var(--iris-a),var(--iris-c)); }
+.svc-head{ display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; border-bottom:1px solid var(--line); padding-bottom:16px; margin-bottom:18px; }
+.svc-idx{ font-family:var(--mono); color:hsl(var(--cb2) 88% 68%); font-size:13px; letter-spacing:.3em; }
+.svc-name{
+  font-family:var(--disp); font-weight:700; text-transform:uppercase; letter-spacing:.14em; font-size:clamp(22px,4vw,40px);
+  background:linear-gradient(100deg, var(--cb-a), var(--cb-b)); -webkit-background-clip:text; background-clip:text; color:transparent; filter:var(--cb-halo);
+}
+.svc-name .jp{ font-family:var(--jp); -webkit-text-fill-color:hsl(var(--cb) 90% 76%); color:hsl(var(--cb) 90% 76%); font-weight:700; margin-left:12px; font-size:.5em; letter-spacing:.08em; }
+.svc-tag{ margin-left:auto; font-family:var(--mono); font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-dim); }
+.svc-body{ font-family:var(--body); font-size:15.5px; line-height:1.85; color:#cfd6e4; max-width:80ch; }
+.svc-body .glowline{ color:var(--hot); }
+.svc-body em{ color:var(--hot); font-style:italic; }
+
+.svc-vids{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:22px; }
+@media(max-width:760px){ .svc-vids{ grid-template-columns:1fr; } }
+.svc-vid{ border:1px solid var(--line-hot); background:#05060a; position:relative; overflow:hidden; }
+.svc-vid video{ width:100%; display:block; filter:saturate(1.02) contrast(1.03); }
+.svc-vid .vcap{
+  font-family:var(--mono); font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--hot);
+  padding:9px 12px; border-top:1px solid var(--line); background:rgba(4,5,9,.7);
+  display:flex; justify-content:space-between; gap:10px;
+}
+.svc-vid .vcap span:last-child{ color:var(--ink-dim); }
+.svc-soon{ display:inline-block; margin-top:16px; font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--hot); border:1px solid var(--line-hot); padding:8px 14px; background:rgba(255,140,50,.05); }
