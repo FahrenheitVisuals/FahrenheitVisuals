@@ -13,6 +13,37 @@
   const msg = document.getElementById('sent-msg');
   if (!form) return;
 
+  /* ---------- carry-over from the booking flow (book.html) ----------
+     ?heat=..&price=..&date=..  (single session)  or  ?plan=..  (membership) */
+  let SESSION = '';
+  (function prefill() {
+    const p = new URLSearchParams(location.search);
+    const banner = document.getElementById('session-banner');
+    const heat = p.get('heat'), price = p.get('price'), date = p.get('date'), plan = p.get('plan');
+    if (plan) {
+      SESSION = plan;
+      if (banner) { banner.innerHTML = ':// <b>MEMBERSHIP</b> — ' + esc(plan); banner.classList.add('show'); }
+      selectLooking('membership');
+    } else if (heat) {
+      SESSION = heat + (price ? ' ($' + esc(price) + ')' : '') + (date ? ' — ' + esc(date) : '');
+      if (banner) {
+        banner.innerHTML = ':// <b>SESSION</b> — ' + esc(heat) +
+          (price ? ' · <b>$' + esc(price) + '</b>' : '') + (date ? ' · <b>' + esc(date) + '</b>' : '');
+        banner.classList.add('show');
+      }
+      if (date && form.when && !form.when.value) form.when.value = date;
+      selectLooking('session');
+    }
+  })();
+  function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+  function selectLooking(kind) {
+    // nudge the dropdown toward a photography option if present
+    if (!form.looking) return;
+    for (const o of form.looking.options) {
+      if (/portrait|streetwear/i.test(o.text)) { o.selected = true; break; }
+    }
+  }
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     const data = {
@@ -29,10 +60,10 @@
     }
     if (window.FH_glitchBurst) window.FH_glitchBurst(500);
 
-    const subject = `BOOKING REQUEST // ${data.name || 'Anonymous'}`;
+    const subject = `BOOKING REQUEST // ${data.name || 'Anonymous'}${SESSION ? ' // ' + SESSION : ''}`;
     const body =
 `:// FAHRENHEIT BOOKING REQUEST ://
-
+${SESSION ? '\nSELECTION  : ' + SESSION + '\n' : ''}
 NAME       : ${data.name || '(not given)'}
 PHONE      : ${data.phone || '(not given)'}
 EMAIL      : ${data.email || '(not given)'}

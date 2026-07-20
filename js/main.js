@@ -8,7 +8,7 @@
   /* ---------- image manifests (hardcoded so file:// works) ---------- */
   const PORTFOLIO = ['DSC_0378','DSC_0405','DSC_0452','DSC_0723','DSC_0997','DSC_1215',
                      'DSC_1226','DSC_0661','DSC_0667','DSC_1134','DSC_1255','DSC_1257',
-                     'DSC_1070','DSC_0388','DSC_0120'];
+                     'DSC_0388','DSC_0120'];
   const LANDSCAPE = ['DSC_1913','DSC_1817','DSC_1485','DSC_1470','DSC_1309','DSC_0541',
                      'DSC_0542','DSC_0571','DSC_1245','DSC_2029','DSC_0366'];
   const BGS = ['DSC_1051','DSC_0190','DSC_1383','DSC_1119','DSC_0796','DSC_1125','DSC_0234'];

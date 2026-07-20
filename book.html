@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAHRENHEIT // 예약 // Book a Shoot</title>
+<meta name="description" content="Book Fahrenheit — set your heat, pick a date. Membership + single sessions. Rapid City, SD.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ===== GLOBAL VFX LAYERS ===== -->
+<canvas id="bg-gl"></canvas>
+<div id="bg-drift"></div>
+<canvas id="vfx-canvas"></canvas>
+<div id="vignette"></div>
+<div id="grain"></div>
+<div id="scan"></div>
+<div id="curtain"></div>
+
+<!-- ===== TOP BAR ===== -->
+<header class="topbar">
+  <div class="brand"><span class="status-dot"></span>FAHREN<b>HEIT</b> // 화씨</div>
+  <nav>
+    <a href="index.html#about" data-nav>About</a>
+    <a href="index.html#work" data-nav>Work</a>
+    <a href="index.html#field" data-nav>Field</a>
+    <a href="services.html" data-nav>Services</a>
+    <a href="book.html">Bookings</a>
+    <span class="socials"><a href="https://www.instagram.com/fahrenheit.visuals/" target="_blank" rel="noopener" title="Instagram — @fahrenheit.visuals">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>
+    </a></span>
+  </nav>
+</header>
+
+<main class="book-main">
+  <div class="book-lead reveal in">
+    <div class="kicker">:// SET YOUR HEAT <span class="kr">열</span> · PICK A DATE ://</div>
+    <h1 class="book-title">Book<span class="jp" data-glitch data-alt="予約">예약</span></h1>
+    <p class="book-intro">Two ways in. Lock a <b>membership</b> for standing access, or slide the <b>heat</b> on a single session and choose your day. Available <b>MON–SUN · 12PM–12AM</b>, Rapid City SD.</p>
+  </div>
+
+  <!-- ===== MEMBERSHIP ===== -->
+  <div class="book-block reveal">
+    <div class="bh"><span class="idx">A //</span><h2>Membership</h2><span class="tag">:// best value</span></div>
+    <div class="member-card">
+      <div class="member-price">
+        <div class="amt">$35</div>
+        <div class="per">/ month</div>
+      </div>
+      <div class="member-body">
+        <h3>The Standing Roster</h3>
+        <div class="sub">:// 35 frames a month · burn them however you want</div>
+        <ul class="member-perks">
+          <li>35 delivered photos every month</li>
+          <li>Shoot anytime — any amount, any time of month</li>
+          <li>As many lenses &amp; locations as you want across those 35</li>
+          <li>Priority booking on the calendar</li>
+          <li>Cancel whenever — no lock-in</li>
+        </ul>
+      </div>
+      <div>
+        <a class="btn" id="join-btn" href="#">Enlist // 등록</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SINGLE SESSION — HEAT SLIDER ===== -->
+  <div class="book-block reveal">
+    <div class="bh"><span class="idx">B //</span><h2>Single Session</h2><span class="tag">:// slide the heat</span></div>
+    <div class="heat-box" id="heat-box">
+      <div class="heat-read">
+        <span class="deg" id="heat-deg">98.6°</span>
+        <span class="name" id="heat-name">Ember</span>
+        <span class="price" id="heat-price">$90<small>flat</small></span>
+      </div>
+      <div class="heat-blurb" id="heat-blurb">~20 min · 1 look · 8 delivered frames</div>
+      <div class="heat-gauge">
+        <div class="ticks" id="heat-ticks">
+          <span>98.6°</span><span>212°</span><span>451°</span><span>∞°</span>
+        </div>
+        <input type="range" class="heat-range" id="heat-range" min="0" max="1000" value="0" step="1"
+               aria-label="Session heat">
+      </div>
+      <div class="heat-actions">
+        <a class="btn" id="lock-btn" href="#pickdate">Lock heat // check dates ↓</a>
+        <span class="heat-hint">:// slide right — it only gets hotter</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CALENDAR ===== -->
+  <div class="cal" id="cal">
+    <a id="pickdate"></a>
+    <div class="cal-inner">
+      <div class="cal-top">
+        <div>
+          <div class="mo" id="cal-mo">MONTH</div>
+          <div class="sel" id="cal-sel">:// pick an open day</div>
+        </div>
+        <div class="cal-nav">
+          <button id="cal-prev" aria-label="previous month">‹ prev</button>
+          <button id="cal-next" aria-label="next month">next ›</button>
+        </div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-legend">
+        <span class="k-open"><i></i>open</span>
+        <span class="k-book"><i></i>booked</span>
+        <span class="k-hours">:// hours 12PM–12AM · Mon–Sun</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAYMENT NOTE ===== -->
+  <div class="book-block reveal" style="margin-top:34px;">
+    <div class="member-body" style="max-width:80ch;">
+      <div class="sub">:// payment</div>
+      <p style="font-family:var(--mono);font-size:12px;line-height:1.9;color:var(--ink-dim);letter-spacing:.04em;">
+        Deposits &amp; membership dues run through <b style="color:var(--hot)">CashApp</b> —
+        <a href="#" id="cashapp" style="color:var(--hot);text-decoration:none;">$FahrenheitVisuals</a>.
+      </p>
+    </div>
+  </div>
+
+  <section class="cta reveal">
+    <div class="wrap">
+      <p>:// questions before you book? <a href="contact.html" data-nav style="color:var(--hot);text-decoration:none;">Send a message ›</a></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>© <span id="yr"></span> FAHRENHEIT <span class="jp">화씨</span> — RAPID CITY, SD</span>
+  <span class="socials">
+    <a href="https://www.instagram.com/fahrenheit.visuals/" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>
+      @fahrenheit.visuals
+    </a>
+  </span>
+  <span><a href="mailto:Fahrenheit.Support@gmail.com">Fahrenheit.Support@gmail.com</a></span>
+</footer>
+
+<!-- ===== AUDIO HUD ===== -->
+<div id="audio-hud" class="muted" title="mute / unmute ambience">
+  <span class="eq"><i></i><i></i><i></i><i></i><i></i></span>
+  <span>♪ <span class="tk">ambience</span></span>
+</div>
+
+<script>document.getElementById('yr').textContent=new Date().getFullYear();</script>
+<script src="js/bggl.js"></script>
+<script src="js/vfx.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/main.js"></script>
+<script src="js/book.js"></script>
+</body>
+</html>
