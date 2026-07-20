@@ -160,7 +160,7 @@
   const CASHTAG = 'FahrenheitVisuals';
   document.getElementById('join-btn').addEventListener('click', e => {
     e.preventDefault();
-    location.href = 'contact.html?plan=' + encodeURIComponent('Membership — $35/mo (35 frames)');
+    location.href = 'contact.html?plan=' + encodeURIComponent('Membership — $35/mo (35 frames · up to 2 sessions)');
   });
   const cash = document.getElementById('cashapp');
   if (cash) { cash.textContent = '$' + CASHTAG; cash.href = 'https://cash.app/$' + CASHTAG; cash.target = '_blank'; cash.rel = 'noopener'; }
