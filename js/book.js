@@ -30,7 +30,8 @@
   const elBlurb = document.getElementById('heat-blurb');
   const ticks   = [...document.querySelectorAll('#heat-ticks span')];
 
-  let chosen = 0;                       // current snapped stop index
+  let chosen = 0;                       // current snapped heat tier
+  let selection = null;                 // what actually gets booked (heat tier OR student session)
 
   function paint(rawT) {                // rawT = continuous 0..1 (heat look)
     box.style.setProperty('--heat', rawT.toFixed(3));
@@ -84,14 +85,23 @@
 
   /* ---------- reveal the calendar ---------- */
   const cal = document.getElementById('cal');
-  document.getElementById('lock-btn').addEventListener('click', e => {
-    e.preventDefault();
+  function openCalendar(sel) {
+    selection = sel;                    // { name, price }
     cal.classList.add('open');
     if (window.FH_glitchBurst) window.FH_glitchBurst(300);
-    document.getElementById('cal-sel').innerHTML =
-      ':// ' + STOPS[chosen].deg + ' ' + STOPS[chosen].name + ' — pick an open day';
+    document.getElementById('cal-sel').innerHTML = ':// ' + sel.name + ' — pick an open day';
     setTimeout(() => document.getElementById('pickdate')
       .scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
+  }
+  document.getElementById('lock-btn').addEventListener('click', e => {
+    e.preventDefault();
+    const s = STOPS[chosen];
+    openCalendar({ name: s.deg + ' ' + s.name, price: s.price });
+  });
+  const studentBtn = document.getElementById('student-btn');
+  if (studentBtn) studentBtn.addEventListener('click', e => {
+    e.preventDefault();
+    openCalendar({ name: 'Student Session', price: 135 });
   });
 
   /* ---------- CALENDAR — booked days keyed 'YYYY-M' (month 1-12) ---------- */
@@ -144,12 +154,11 @@
   nextBtn.addEventListener('click', () => { if (viewM === 11) { viewM = 0; viewY++; } else viewM++; render(); });
 
   function pick(y, m, d) {
-    const s = STOPS[chosen];
-    const iso = y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    const s = selection || { name: STOPS[chosen].deg + ' ' + STOPS[chosen].name, price: STOPS[chosen].price };
     const pretty = MON[m - 1] + ' ' + d + ', ' + y;
     if (window.FH_glitchBurst) window.FH_glitchBurst(400);
     if (window.FH_audioGlitch) window.FH_audioGlitch(300);
-    const q = 'heat=' + encodeURIComponent(s.deg + ' ' + s.name) +
+    const q = 'heat=' + encodeURIComponent(s.name) +
               '&price=' + s.price +
               '&date=' + encodeURIComponent(pretty);
     setTimeout(() => { location.href = 'contact.html?' + q; }, 260);

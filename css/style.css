@@ -465,6 +465,7 @@ footer .jp{ font-family:var(--jp); color:var(--iris-b); }
 .member-card::before{ content:""; position:absolute; top:0; left:0; width:100%; height:3px;
   background:linear-gradient(90deg,var(--iris-a),var(--iris-b),var(--iris-c),var(--iris-d)); background-size:300% 100%; animation:irisbar 8s linear infinite; }
 .member-price{ text-align:center; }
+.member-price .was{ font-family:var(--mono); font-size:15px; color:var(--ink-dim); text-decoration:line-through; text-decoration-color:var(--danger); opacity:.75; margin-bottom:2px; }
 .member-price .amt{ font-family:var(--disp); font-weight:700; font-size:clamp(46px,9vw,76px); line-height:.9;
   background:linear-gradient(100deg,var(--cb-a),var(--cb-b) 60%,#fff2cf); -webkit-background-clip:text; background-clip:text; color:transparent; filter:var(--cb-halo); }
 .member-price .per{ font-family:var(--mono); font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--ink-dim); margin-top:6px; }
