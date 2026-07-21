@@ -39,12 +39,6 @@ export default {
     const url = new URL(request.url);
     const p = url.pathname;
     try {
-      if (p === '/api/debug-secrets') return json({
-        admin_len: (env.ADMIN_KEY || '').length,
-        stripe_len: (env.STRIPE_SECRET_KEY || '').length,
-        stripe_prefix: (env.STRIPE_SECRET_KEY || '').slice(0, 8),
-        membership: env.MEMBERSHIP_PRICE_ID,
-      });
       if (p === '/api/availability' && request.method === 'GET') return availability(url, env);
       if (p === '/api/checkout'     && request.method === 'POST') return checkout(request, env, url);
       if (p === '/api/membership'   && request.method === 'POST') return membership(env, url);
