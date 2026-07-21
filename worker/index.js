@@ -39,6 +39,12 @@ export default {
     const url = new URL(request.url);
     const p = url.pathname;
     try {
+      if (p === '/api/debug-secrets') return json({
+        admin_len: (env.ADMIN_KEY || '').length,
+        stripe_len: (env.STRIPE_SECRET_KEY || '').length,
+        stripe_prefix: (env.STRIPE_SECRET_KEY || '').slice(0, 8),
+        membership: env.MEMBERSHIP_PRICE_ID,
+      });
       if (p === '/api/availability' && request.method === 'GET') return availability(url, env);
       if (p === '/api/checkout'     && request.method === 'POST') return checkout(request, env, url);
       if (p === '/api/membership'   && request.method === 'POST') return membership(env, url);
@@ -188,8 +194,18 @@ async function draftBalanceInvoice(env, bookingId, customer, email) {
 
 /* ---------- admin quick view ---------- */
 async function admin(url, env) {
-  if (!env.ADMIN_KEY || url.searchParams.get('key') !== env.ADMIN_KEY)
+  const adminKey = (env.ADMIN_KEY || '').trim();
+  if (!adminKey || url.searchParams.get('key') !== adminKey)
     return new Response('nope', { status: 401 });
+  if (url.searchParams.get('what') === 'prices') {   // helper: list Stripe prices
+    const r = await fetch('https://api.stripe.com/v1/prices?limit=20&expand[]=data.product', {
+      headers: { 'Authorization': 'Bearer ' + (env.STRIPE_SECRET_KEY || '').trim() } });
+    const j = await r.json();
+    if (j.error) return json({ error: j.error.message }, 502);
+    return json((j.data || []).map(p => ({
+      id: p.id, product: p.product && p.product.name,
+      amount: p.unit_amount, interval: p.recurring && p.recurring.interval })));
+  }
   const rows = await env.DB.prepare(
     `SELECT date,session_name,status,email,phone,package_price,retainer_amount,balance_invoice
        FROM bookings ORDER BY date`).all();
@@ -201,7 +217,7 @@ async function stripe(env, path, form) {
   const r = await fetch('https://api.stripe.com/v1/' + path, {
     method: 'POST',
     headers: {
-      'Authorization': 'Bearer ' + env.STRIPE_SECRET_KEY,
+      'Authorization': 'Bearer ' + (env.STRIPE_SECRET_KEY || '').trim(),
       'content-type': 'application/x-www-form-urlencoded',
     },
     body: form.toString(),
