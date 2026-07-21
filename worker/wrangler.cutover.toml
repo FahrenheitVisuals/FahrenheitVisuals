@@ -1,0 +1,33 @@
+# ============================================================
+# CUTOVER CONFIG — replaces the ROOT wrangler.toml when the
+# booking backend goes live. Until then, leave root as-is so the
+# static site keeps deploying normally.
+#
+# Before first deploy with this config you MUST have:
+#   1. created the D1 db and pasted its id below (database_id)
+#   2. set secrets: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, ADMIN_KEY
+#   3. filled MEMBERSHIP_PRICE_ID below
+# ============================================================
+name = "fahrenheitvisuals"
+main = "worker/index.js"
+compatibility_date = "2025-06-01"
+
+# static site is now served BY the worker via this binding
+[assets]
+directory = "."
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "fahrenheit-bookings"
+database_id = "efa373c0-76ec-4eeb-ace9-9c8d8f4c7fe0"
+
+[vars]
+SITE_ORIGIN = "https://fahrenheitvisuals.com"
+STRIPE_PUBLISHABLE_KEY = "pk_test_51TvCt9JBaIlT27ydY013Su1kIiMJMQ7JkM6q4HeSkRzhxmA8S7rfgrAQmmfMde6t9xXlOeCHW6TngX2iMB8yzmrS00HdVhOEjd"
+MEMBERSHIP_PRICE_ID = "PASTE_35_MONTH_PRICE_ID_HERE"
+
+# secrets (do NOT put here — set with `wrangler secret put` or the dashboard):
+#   STRIPE_SECRET_KEY  ·  STRIPE_WEBHOOK_SECRET  ·  ADMIN_KEY
+
+# .assetsignore already excludes the worker/ source + configs from being served.

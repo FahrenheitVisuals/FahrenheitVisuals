@@ -2,5 +2,9 @@
 .gitignore
 .assetsignore
 wrangler.toml
-README.md
+*.md
 *.bat
+worker
+Fahrenheit_impact.png
+Fahrenheit_poster.png
+Fahrenheit_Fmark.png

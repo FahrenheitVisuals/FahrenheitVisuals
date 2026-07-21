@@ -9,12 +9,18 @@
 (function () {
   'use strict';
 
-  /* ---------- the 4 real choices ---------- */
+  /* ---------- backend (Stripe/D1 Worker). Flip enabled -> true at cutover.
+     While false, booking uses the mailto contact-form handoff (current live
+     behaviour), so this file is safe to ship before the backend is live. ---- */
+  const BACKEND = { enabled: false };
+  const DAY_BUDGET = 3;                 // must match the Worker
+
+  /* ---------- the 4 real choices (key must match the Worker CATALOG) ---------- */
   const STOPS = [
-    { deg: '98.6°', name: 'Ember',         price: 90,  blurb: '~20 min · 1 look · 8 delivered frames' },
-    { deg: '212°',  name: 'Boiling Point', price: 185, blurb: '~1 hr · up to 2 looks · 25 delivered frames' },
-    { deg: '451°',  name: 'Ignition',      price: 350, blurb: '~2 hrs · multi-look / location · 45+ frames · full treatment' },
-    { deg: '∞°',    name: 'Meltdown',      price: 600, blurb: 'half-day · everything · all glass, all locations, the works' },
+    { key: 'ember',    deg: '98.6°', name: 'Ember',         price: 90,  weight: 1, blurb: '~20 min · 1 look · 8 delivered frames' },
+    { key: 'boiling',  deg: '212°',  name: 'Boiling Point', price: 185, weight: 1, blurb: '~1 hr · up to 2 looks · 25 delivered frames' },
+    { key: 'ignition', deg: '451°',  name: 'Ignition',      price: 350, weight: 2, blurb: '~2 hrs · multi-look / location · 45+ frames · full treatment' },
+    { key: 'meltdown', deg: '∞°',    name: 'Meltdown',      price: 600, weight: 3, blurb: 'half-day · everything · all glass, all locations, the works' },
   ];
   const MAXV = 1000;
   const stopVal = i => Math.round(i / (STOPS.length - 1) * MAXV);
@@ -86,26 +92,36 @@
   /* ---------- reveal the calendar ---------- */
   const cal = document.getElementById('cal');
   function openCalendar(sel) {
-    selection = sel;                    // { name, price }
+    selection = sel;                    // { key, name, price, weight }
     cal.classList.add('open');
     if (window.FH_glitchBurst) window.FH_glitchBurst(300);
     document.getElementById('cal-sel').innerHTML = ':// ' + sel.name + ' — pick an open day';
+    if (BACKEND.enabled) loadAvail(); else render();
     setTimeout(() => document.getElementById('pickdate')
       .scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
   }
   document.getElementById('lock-btn').addEventListener('click', e => {
     e.preventDefault();
     const s = STOPS[chosen];
-    openCalendar({ name: s.deg + ' ' + s.name, price: s.price });
+    openCalendar({ key: s.key, name: s.deg + ' ' + s.name, price: s.price, weight: s.weight });
   });
   const studentBtn = document.getElementById('student-btn');
   if (studentBtn) studentBtn.addEventListener('click', e => {
     e.preventDefault();
-    openCalendar({ name: 'Student Session', price: 135 });
+    openCalendar({ key: 'student', name: 'Student Session', price: 135, weight: 1 });
   });
 
-  /* ---------- CALENDAR — booked days keyed 'YYYY-M' (month 1-12) ---------- */
-  const BOOKED = {};
+  /* ---------- CALENDAR ---------- */
+  const BOOKED = {};                     // fallback when backend is off (kept empty)
+  let AVAIL = { budget: DAY_BUDGET, used: {} };
+  async function loadAvail() {
+    const mk = viewY + '-' + String(viewM + 1).padStart(2, '0');
+    try {
+      const r = await fetch('/api/availability?month=' + mk);
+      if (r.ok) { const j = await r.json(); AVAIL = { budget: j.budget || DAY_BUDGET, used: j.used || {} }; }
+    } catch (e) { /* keep whatever we have */ }
+    render();
+  }
 
   const grid = document.getElementById('cal-grid');
   const moLabel = document.getElementById('cal-mo');
@@ -124,6 +140,7 @@
     const first = new Date(viewY, viewM, 1).getDay();
     const days = new Date(viewY, viewM + 1, 0).getDate();
     const booked = BOOKED[viewY + '-' + (viewM + 1)] || [];
+    const needW = (selection && selection.weight) || 1;
     for (let i = 0; i < first; i++) {
       const e = document.createElement('div'); e.className = 'cal-day empty'; grid.appendChild(e);
     }
@@ -134,9 +151,14 @@
       const date = new Date(viewY, viewM, d);
       const isToday = date.getTime() === today.getTime();
       if (isToday) cell.classList.add('today');
+      const iso = viewY + '-' + String(viewM + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      // full? backend uses remaining day-capacity vs the chosen shoot's weight
+      const full = BACKEND.enabled
+        ? ((AVAIL.used[iso] || 0) + needW > AVAIL.budget)
+        : (booked.indexOf(d) !== -1);
       if (date < today) {
         cell.classList.add('past');
-      } else if (booked.indexOf(d) !== -1) {
+      } else if (full) {
         cell.classList.add('booked');
       } else {
         cell.classList.add('open');
@@ -150,25 +172,49 @@
 
   const prevBtn = document.getElementById('cal-prev');
   const nextBtn = document.getElementById('cal-next');
-  prevBtn.addEventListener('click', () => { if (viewM === 0) { viewM = 11; viewY--; } else viewM--; render(); });
-  nextBtn.addEventListener('click', () => { if (viewM === 11) { viewM = 0; viewY++; } else viewM++; render(); });
+  function hop(dir) {
+    viewM += dir;
+    if (viewM < 0) { viewM = 11; viewY--; } else if (viewM > 11) { viewM = 0; viewY++; }
+    if (BACKEND.enabled) loadAvail(); else render();
+  }
+  prevBtn.addEventListener('click', () => hop(-1));
+  nextBtn.addEventListener('click', () => hop(1));
 
-  function pick(y, m, d) {
-    const s = selection || { name: STOPS[chosen].deg + ' ' + STOPS[chosen].name, price: STOPS[chosen].price };
+  async function pick(y, m, d) {
+    const s = selection || { key: STOPS[chosen].key, name: STOPS[chosen].deg + ' ' + STOPS[chosen].name, price: STOPS[chosen].price };
+    const iso = y + '-' + String(m).padStart(2, '0') + '-' + String(d).padStart(2, '0');
     const pretty = MON[m - 1] + ' ' + d + ', ' + y;
     if (window.FH_glitchBurst) window.FH_glitchBurst(400);
     if (window.FH_audioGlitch) window.FH_audioGlitch(300);
-    const q = 'heat=' + encodeURIComponent(s.name) +
-              '&price=' + s.price +
-              '&date=' + encodeURIComponent(pretty);
+    if (BACKEND.enabled && s.key) {
+      try {
+        const r = await fetch('/api/checkout', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ session: s.key, date: iso }),
+        });
+        const j = await r.json();
+        if (r.ok && j.url) { location.href = j.url; return; }
+        document.getElementById('cal-sel').innerHTML = ':// ' + (j.error || 'could not start checkout — try another day');
+        loadAvail();
+        return;
+      } catch (e) { /* network down -> fall back to the contact handoff */ }
+    }
+    const q = 'heat=' + encodeURIComponent(s.name) + '&price=' + s.price + '&date=' + encodeURIComponent(pretty);
     setTimeout(() => { location.href = 'contact.html?' + q; }, 260);
   }
   render();
 
   /* ---------- membership + payment handoffs ---------- */
   const CASHTAG = 'FahrenheitVisuals';
-  document.getElementById('join-btn').addEventListener('click', e => {
+  document.getElementById('join-btn').addEventListener('click', async e => {
     e.preventDefault();
+    if (BACKEND.enabled) {
+      try {
+        const r = await fetch('/api/membership', { method: 'POST' });
+        const j = await r.json();
+        if (r.ok && j.url) { location.href = j.url; return; }
+      } catch (err) { /* fall back below */ }
+    }
     location.href = 'contact.html?plan=' + encodeURIComponent('Membership — $35/mo (35 frames · up to 2 sessions)');
   });
   const cash = document.getElementById('cashapp');

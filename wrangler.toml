@@ -1,6 +1,21 @@
-# Cloudflare Workers static-assets config — serves the site as static files.
+# Cloudflare — site is now served BY the booking Worker (static via ASSETS binding).
 name = "fahrenheitvisuals"
+main = "worker/index.js"
 compatibility_date = "2025-06-01"
 
 [assets]
 directory = "."
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "fahrenheit-bookings"
+database_id = "efa373c0-76ec-4eeb-ace9-9c8d8f4c7fe0"
+
+[vars]
+SITE_ORIGIN = "https://fahrenheitvisuals.com"
+STRIPE_PUBLISHABLE_KEY = "pk_test_51TvCt9JBaIlT27ydY013Su1kIiMJMQ7JkM6q4HeSkRzhxmA8S7rfgrAQmmfMde6t9xXlOeCHW6TngX2iMB8yzmrS00HdVhOEjd"
+MEMBERSHIP_PRICE_ID = "PASTE_35_MONTH_PRICE_ID_HERE"
+
+# secrets set separately (never in this file):
+#   STRIPE_SECRET_KEY  ·  STRIPE_WEBHOOK_SECRET  ·  ADMIN_KEY
