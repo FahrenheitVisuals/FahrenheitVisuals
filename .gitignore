@@ -4,4 +4,7 @@ Thumbs.db
 .DS_Store
 *.tmp
 
+# wrangler local state (account cache, build artifacts) — never commit
+.wrangler/
+
 # keep everything else — assets ARE the site
