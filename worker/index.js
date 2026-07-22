@@ -181,15 +181,22 @@ async function webhook(request, env) {
 
     if (kind === 'retainer') {
       const id = s.metadata.booking_id;
-      await env.DB.prepare(
-        `UPDATE bookings SET status='confirmed', stripe_pi=?1, stripe_customer=?2, email=?3 WHERE id=?4`
-      ).bind(s.payment_intent || null, s.customer || null, email, id).run();
-      // draft the remaining 85% as an invoice (kept DRAFT for review; send from dashboard)
-      await draftBalanceInvoice(env, id, s.customer, email).catch(() => {});
+      // idempotent: Stripe may deliver the same event more than once
+      const existing = await env.DB.prepare(`SELECT status FROM bookings WHERE id=?1`).bind(id).first();
+      if (existing && existing.status !== 'confirmed') {
+        await env.DB.prepare(
+          `UPDATE bookings SET status='confirmed', stripe_pi=?1, stripe_customer=?2, email=?3 WHERE id=?4`
+        ).bind(s.payment_intent || null, s.customer || null, email, id).run();
+        // draft the remaining 85% as an invoice (kept DRAFT for review; send from dashboard)
+        await draftBalanceInvoice(env, id, s.customer, email).catch(() => {});
+      }
     } else if (kind === 'membership') {
-      await env.DB.prepare(
-        `INSERT INTO members (id,email,stripe_customer,stripe_sub,status,created_at) VALUES (?1,?2,?3,?4,'active',?5)`
-      ).bind(crypto.randomUUID(), email, s.customer || null, s.subscription || null, Date.now()).run();
+      const dup = await env.DB.prepare(`SELECT id FROM members WHERE stripe_sub=?1`).bind(s.subscription || '').first();
+      if (!dup) {
+        await env.DB.prepare(
+          `INSERT INTO members (id,email,stripe_customer,stripe_sub,status,created_at) VALUES (?1,?2,?3,?4,'active',?5)`
+        ).bind(crypto.randomUUID(), email, s.customer || null, s.subscription || null, Date.now()).run();
+      }
     }
   }
   return json({ received: true });
@@ -197,7 +204,7 @@ async function webhook(request, env) {
 
 async function draftBalanceInvoice(env, bookingId, customer, email) {
   const b = await env.DB.prepare(`SELECT * FROM bookings WHERE id=?1`).bind(bookingId).first();
-  if (!b) return;
+  if (!b || b.balance_invoice) return;      // idempotent: don't double-invoice
   let cust = customer;
   if (!cust && email) {
     const cf = new URLSearchParams(); cf.set('email', email);
@@ -235,8 +242,8 @@ async function admin(url, env) {
       amount: p.unit_amount, interval: p.recurring && p.recurring.interval })));
   }
   const rows = await env.DB.prepare(
-    `SELECT date,session_name,status,email,phone,package_price,retainer_amount,balance_invoice
-       FROM bookings ORDER BY date`).all();
+    `SELECT date,session_name,callsign,status,email,phone,package_price,retainer_amount,balance_invoice
+       FROM bookings WHERE status='confirmed' ORDER BY date`).all();
   return json(rows.results || []);
 }
 
@@ -255,6 +262,7 @@ async function stripe(env, path, form) {
 
 /* ---------- Stripe webhook signature verify (Web Crypto) ---------- */
 async function verify(payload, header, secret) {
+  secret = (secret || '').trim();
   if (!secret || !header) return false;
   const parts = Object.fromEntries(header.split(',').map(kv => kv.split('=')));
   const t = parts.t, v1 = parts.v1;
