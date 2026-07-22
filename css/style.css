@@ -589,6 +589,23 @@ input.heat-range::-moz-range-thumb{ width:14px; height:30px; background:linear-g
 .thanks-contact a{ color:var(--hot); text-decoration:none; }
 .seal-note{ font-family:var(--mono); font-size:10.5px; color:var(--ink-dim); margin-top:16px; letter-spacing:.1em; text-transform:uppercase; opacity:.8; }
 
+/* ---- TIME BLOCK PICKER ---- */
+.blocks{ max-width:1240px; margin:22px auto 0; padding:0 26px; overflow:hidden; max-height:0; opacity:0; transition:max-height .6s ease, opacity .5s ease; }
+.blocks.open{ max-height:800px; opacity:1; }
+.blocks-inner{ border:1px solid var(--line-hot); background:linear-gradient(180deg, rgba(20,16,24,.72), rgba(8,7,12,.8)); padding:22px clamp(18px,3vw,34px) 28px; }
+.blk-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:6px; }
+@media(max-width:620px){ .blk-grid{ grid-template-columns:1fr; } }
+.blk-grid.one{ grid-template-columns:1fr; max-width:420px; }
+.blk{ border:1px solid var(--line); background:rgba(0,0,0,.28); padding:20px 16px; cursor:pointer; transition:.18s; text-align:left; }
+.blk:hover:not(.taken){ background:var(--hot); border-color:var(--hot); transform:translateY(-2px); box-shadow:0 0 18px rgba(255,120,40,.45); }
+.blk .b-name{ font-family:var(--disp); text-transform:uppercase; letter-spacing:.16em; font-size:18px; color:var(--hot); }
+.blk:hover:not(.taken) .b-name, .blk:hover:not(.taken) .b-win{ color:#05120e; }
+.blk .b-win{ font-family:var(--mono); font-size:12px; letter-spacing:.1em; color:var(--ink-dim); margin-top:6px; }
+.blk.taken{ cursor:not-allowed; opacity:.5;
+  background:repeating-linear-gradient(45deg, rgba(255,60,40,.12) 0 6px, rgba(0,0,0,.3) 6px 12px); border-color:rgba(255,70,50,.4); }
+.blk.taken .b-name{ color:#ff7a6a; }
+.blk.taken .b-win::after{ content:" · booked"; color:#ff7a6a; }
+
 /* session banner on the contact form (carried from the calendar pick) */
 #session-banner{ display:none; margin:0 0 24px; border:1px solid var(--line-hot); background:linear-gradient(100deg, rgba(255,80,25,.12), rgba(255,150,50,.05));
   padding:14px 16px; font-family:var(--mono); font-size:12px; letter-spacing:.08em; color:#ffe2b8; }

@@ -26,7 +26,9 @@ const CATALOG = {
   meltdown: { name: '∞° Meltdown',         price: 60000, weight: 3 },
   student:  { name: 'Student Session',     price: 13500, weight: 1 },
 };
-const DAY_BUDGET = 3;                 // "2–3 shoots/day depending on type"
+// time blocks — regular shoots take ONE; a Meltdown (half-day) takes the whole day ('all')
+const BLOCKS = ['midday', 'afternoon', 'evening'];
+const BLOCK_WIN = { midday: '12PM–4PM', afternoon: '4PM–8PM', evening: '8PM–12AM', all: 'Full day · 12PM–12AM' };
 const RETAINER = 0.15;                // 15% non-refundable deposit
 const HOLD_MS = 30 * 60 * 1000;       // pending hold: 30 min
 
@@ -70,20 +72,19 @@ export default {
   },
 };
 
-/* ---------- availability ---------- */
+/* ---------- availability: which blocks are taken per day ---------- */
 async function availability(url, env) {
   const month = url.searchParams.get('month'); // YYYY-MM
   if (!/^\d{4}-\d{2}$/.test(month || '')) return json({ error: 'bad month' }, 400);
   const now = Date.now();
   const rows = await env.DB.prepare(
-    `SELECT date, SUM(weight) AS used FROM bookings
+    `SELECT date, block FROM bookings
       WHERE date LIKE ?1
-        AND (status='confirmed' OR (status='pending' AND expires_at > ?2))
-      GROUP BY date`
+        AND (status='confirmed' OR (status='pending' AND expires_at > ?2))`
   ).bind(month + '-%', now).all();
-  const out = {};
-  for (const r of (rows.results || [])) out[r.date] = r.used;
-  return json({ budget: DAY_BUDGET, used: out });
+  const taken = {};
+  for (const r of (rows.results || [])) (taken[r.date] = taken[r.date] || []).push(r.block || 'all');
+  return json({ blocks: BLOCKS, taken });
 }
 
 /* ---------- retainer checkout ---------- */
@@ -91,27 +92,38 @@ async function checkout(request, env, url) {
   const body = await request.json().catch(() => ({}));
   const key = String(body.session || '');
   const date = String(body.date || '');           // YYYY-MM-DD
+  const reqBlock = String(body.block || '');       // midday | afternoon | evening (ignored for meltdown)
   const item = CATALOG[key];
   if (!item) return json({ error: 'unknown session' }, 400);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return json({ error: 'bad date' }, 400);
   if (date < todayLocal()) return json({ error: 'date in the past' }, 400);
 
-  // server-side capacity guard (authoritative — client may be stale)
+  // server-side capacity guard by time block (authoritative — client may be stale)
   const now = Date.now();
-  const used = await env.DB.prepare(
-    `SELECT COALESCE(SUM(weight),0) AS used FROM bookings
+  const rows = await env.DB.prepare(
+    `SELECT block FROM bookings
       WHERE date=?1 AND (status='confirmed' OR (status='pending' AND expires_at>?2))`
-  ).bind(date, now).first();
-  if ((used.used || 0) + item.weight > DAY_BUDGET)
-    return json({ error: 'That day just filled up — pick another.' }, 409);
+  ).bind(date, now).all();
+  const taken = (rows.results || []).map(r => r.block || 'all');
+  const hasMeltdown = taken.includes('all');
+  let block;
+  if (key === 'meltdown') {                          // half-day → needs the WHOLE day free
+    if (taken.length > 0) return json({ error: 'That day is already taken — pick another.' }, 409);
+    block = 'all';
+  } else {
+    if (!BLOCKS.includes(reqBlock)) return json({ error: 'pick a time block' }, 400);
+    if (hasMeltdown || taken.includes(reqBlock))
+      return json({ error: 'That time just filled up — pick another.' }, 409);
+    block = reqBlock;
+  }
 
   const retainer = Math.round(item.price * RETAINER);
   const id = crypto.randomUUID();
   const sign = makeCallsign(id);
   await env.DB.prepare(
-    `INSERT INTO bookings (id,date,session_key,session_name,weight,package_price,retainer_amount,callsign,status,created_at,expires_at)
-     VALUES (?1,?2,?3,?4,?5,?6,?7,?8,'pending',?9,?10)`
-  ).bind(id, date, key, item.name, item.weight, item.price, retainer, sign, now, now + HOLD_MS).run();
+    `INSERT INTO bookings (id,date,block,session_key,session_name,weight,package_price,retainer_amount,callsign,status,created_at,expires_at)
+     VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,'pending',?10,?11)`
+  ).bind(id, date, block, key, item.name, item.weight, item.price, retainer, sign, now, now + HOLD_MS).run();
 
   const origin = env.SITE_ORIGIN || url.origin;
   const form = new URLSearchParams();
@@ -124,7 +136,7 @@ async function checkout(request, env, url) {
   form.set('line_items[0][price_data][unit_amount]', String(retainer));
   form.set('line_items[0][price_data][product_data][name]', `${item.name} — 15% retainer (deposit)`);
   form.set('line_items[0][price_data][product_data][description]',
-    `Secures ${date}. Call-sign ${sign}. Balance $${((item.price - retainer) / 100).toFixed(2)} invoiced later. Non-refundable.`);
+    `Secures ${date} (${BLOCK_WIN[block]}). Call-sign ${sign}. Balance $${((item.price - retainer) / 100).toFixed(2)} invoiced later. Non-refundable.`);
   form.set('metadata[booking_id]', id);
   form.set('metadata[kind]', 'retainer');
   form.set('payment_intent_data[metadata][booking_id]', id);
@@ -244,7 +256,7 @@ async function admin(url, env) {
       amount: p.unit_amount, interval: p.recurring && p.recurring.interval })));
   }
   const rows = await env.DB.prepare(
-    `SELECT date,session_name,callsign,status,email,phone,package_price,retainer_amount,balance_invoice
+    `SELECT date,block,session_name,callsign,status,email,phone,package_price,retainer_amount,balance_invoice
        FROM bookings WHERE status='confirmed' ORDER BY date`).all();
   return json(rows.results || []);
 }

@@ -4,6 +4,7 @@
 CREATE TABLE IF NOT EXISTS bookings (
   id                TEXT PRIMARY KEY,        -- our booking id (also Stripe metadata)
   date              TEXT NOT NULL,           -- 'YYYY-MM-DD'
+  block             TEXT,                    -- midday | afternoon | evening | all (meltdown)
   session_key       TEXT NOT NULL,           -- ember | boiling | ignition | meltdown | student
   session_name      TEXT NOT NULL,           -- pretty label
   weight            INTEGER NOT NULL,        -- day-capacity cost (budget = 3/day)
