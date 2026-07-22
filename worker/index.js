@@ -54,11 +54,6 @@ export default {
     const url = new URL(request.url);
     const p = url.pathname;
     try {
-      if (p === '/api/debug-secrets') return json({
-        webhook_set: !!(env.STRIPE_WEBHOOK_SECRET || '').trim(),
-        webhook_prefix: (env.STRIPE_WEBHOOK_SECRET || '').trim().slice(0, 6),
-        stripe_prefix: (env.STRIPE_SECRET_KEY || '').trim().slice(0, 8),
-      });
       if (p === '/api/availability' && request.method === 'GET') return availability(url, env);
       if (p === '/api/checkout'     && request.method === 'POST') return checkout(request, env, url);
       if (p === '/api/order'        && request.method === 'GET')  return order(url, env);
