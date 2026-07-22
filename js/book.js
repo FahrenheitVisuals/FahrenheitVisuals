@@ -12,7 +12,7 @@
   /* ---------- backend (Stripe/D1 Worker). Flip enabled -> true at cutover.
      While false, booking uses the mailto contact-form handoff (current live
      behaviour), so this file is safe to ship before the backend is live. ---- */
-  const BACKEND = { enabled: false };
+  const BACKEND = { enabled: true };
   const DAY_BUDGET = 3;                 // must match the Worker
 
   /* ---------- the 4 real choices (key must match the Worker CATALOG) ---------- */
