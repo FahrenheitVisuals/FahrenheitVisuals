@@ -9,9 +9,18 @@
   const PORTFOLIO = ['DSC_0378','DSC_0405','DSC_0452','DSC_0723','DSC_0997','DSC_1215',
                      'DSC_1226','DSC_0661','DSC_0667','DSC_1134','DSC_1255','DSC_1257',
                      'DSC_0388','DSC_0120'];
-  const LANDSCAPE = ['DSC_1913','DSC_1817','DSC_1485','DSC_1470','DSC_1309','DSC_0541',
+  const LANDSCAPE = ['cant-compare','lonely','integrated','pollination','elk-creek',
+                     'past-empty',
+                     'DSC_1913','DSC_1817','DSC_1485','DSC_1470','DSC_1309','DSC_0541',
                      'DSC_0542','DSC_0571','DSC_1245','DSC_2029','DSC_0366'];
   const BGS = ['DSC_1051','DSC_0190','DSC_1383','DSC_1119','DSC_0796','DSC_1125','DSC_0234'];
+
+  /* titled pieces (real captions instead of the DSC_ file number) */
+  const TITLES = {
+    'cant-compare': "Can't Compare", 'lonely': 'Lonely', 'integrated': 'Integrated',
+    'pollination': 'Pollination', 'elk-creek': 'Elk Creek',
+    'past-empty': 'The Past Will Always Be Empty',
+  };
 
   /* ---------- dynamic-contrast text ----------
      Over-bg text (.hero-sub, .cta p, nav, footer, …) uses a thermal palette but
@@ -109,19 +118,20 @@
     list.forEach((n, i) => {
       const a = document.createElement('a');
       a.className = 'tile reveal';
+      const label = TITLES[n] || n;
       a.href = `assets/${prefix}/${n}.jpg`;
       a.dataset.full = `assets/${prefix}/${n}.jpg`;
-      a.dataset.cap = `${prefix === 'portfolio' ? 'PORTRAIT' : 'FIELD'} // ${n}`;
+      a.dataset.cap = `${prefix === 'portfolio' ? 'PORTRAIT' : 'FIELD'} // ${label}`;
       const img = document.createElement('img');
       img.loading = 'lazy';
       img.src = `assets/${prefix}/${n}_t.jpg`;
-      img.alt = n;
+      img.alt = label;
       const corner = document.createElement('span');
       corner.className = 'corner';
       corner.textContent = String(i + 1).padStart(2, '0');
       const meta = document.createElement('span');
       meta.className = 'meta';
-      meta.innerHTML = `<span>${n}</span><span>화씨</span>`;
+      meta.innerHTML = `<span>${label}</span><span>화씨</span>`;
       a.append(img, corner, meta);
       grid.appendChild(a);
       io.observe(a);
