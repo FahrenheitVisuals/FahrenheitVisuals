@@ -19,6 +19,22 @@
     if (sealEl) sealEl.textContent = ':// check your emailed receipt for your call-sign.';
   }
 
+  // scramble -> settle "decode" reveal (self-contained; not the global glitch)
+  function decode(el, text) {
+    const glyphs = '█▓▒░#%&/\\0123456789ABCDEFHKVXZ°·-';
+    let frame = 0; const total = 20;
+    const iv = setInterval(() => {
+      frame++;
+      const lock = Math.floor(text.length * frame / total);
+      let out = '';
+      for (let i = 0; i < text.length; i++) {
+        out += i < lock ? text[i] : glyphs[Math.random() * glyphs.length | 0];
+      }
+      el.textContent = out;
+      if (frame >= total) { clearInterval(iv); el.textContent = text; }
+    }, 45);
+  }
+
   if (!cs) { sealed('no order reference'); return; }
 
   fetch('/api/order?cs=' + encodeURIComponent(cs))
@@ -26,11 +42,8 @@
     .then(d => {
       if (!d || d.error) { sealed('order not found'); return; }
       if (d.sealed) { sealed('you already opened this once'); return; }
-      if (codeEl) {
-        codeEl.textContent = d.callsign || '—';
-        codeEl.setAttribute('data-alt', d.callsign || '');
-        codeEl.setAttribute('data-text', d.callsign || '');
-      }
+      if (codeEl && d.callsign) decode(codeEl, d.callsign);
+      else if (codeEl) codeEl.textContent = '—';
       if (metaEl) {
         const parts = [];
         if (d.session_name) parts.push(d.session_name);
