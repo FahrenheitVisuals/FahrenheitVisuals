@@ -48,6 +48,9 @@ function makeCallsign(seed) {
   return `${w1}-${w2}·${deg}°·${num}`;
 }
 const VIEW_GRACE = 15 * 60 * 1000;   // one-time page: re-viewable for 15 min, then sealed
+const TZ = 'America/Denver';          // Rapid City, SD — the business's clock
+// current date 'YYYY-MM-DD' in the business timezone (ISO strings sort chronologically)
+const todayLocal = () => new Date().toLocaleDateString('en-CA', { timeZone: TZ });
 
 export default {
   async fetch(request, env) {
@@ -91,8 +94,7 @@ async function checkout(request, env, url) {
   const item = CATALOG[key];
   if (!item) return json({ error: 'unknown session' }, 400);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return json({ error: 'bad date' }, 400);
-  if (new Date(date + 'T00:00:00') < new Date(new Date().toDateString()))
-    return json({ error: 'date in the past' }, 400);
+  if (date < todayLocal()) return json({ error: 'date in the past' }, 400);
 
   // server-side capacity guard (authoritative — client may be stale)
   const now = Date.now();
