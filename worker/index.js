@@ -35,16 +35,17 @@ const json = (o, s = 200) => new Response(JSON.stringify(o), {
 });
 
 /* ---------- per-order CALL-SIGN (photography · glitchcore · temperature) ---------- */
-const CS_TEMP  = ['EMBER','FROST','SCORCH','KELVIN','THERMAL','IGNIS','CINDER','INFERNO','GLACIER','MAGMA','WICK','ZERO','BLAZE','CHILL'];
-const CS_OPTIC = ['APERTURE','SHUTTER','BOKEH','GRAIN','SILVER','NEGATIVE','EXPOSURE','PRISM','LUMEN','FOCAL','HALIDE','DARKROOM','SCANLINE','STATIC','DATABEND','VOID','SIGNAL','RASTER','GHOST','ARTIFACT'];
+// NOTE: no word here may contain the letter B, and the end code is digits only.
+const CS_TEMP  = ['FROST','SCORCH','KELVIN','THERMAL','IGNIS','CINDER','INFERNO','GLACIER','MAGMA','WICK','ZERO','CHILL','SEAR','ASH','FLARE','PYRE','TUNDRA','KINDLE'];
+const CS_OPTIC = ['APERTURE','SHUTTER','GRAIN','SILVER','NEGATIVE','EXPOSURE','PRISM','LUMEN','FOCAL','HALIDE','DARKROOM','SCANLINE','STATIC','VOID','SIGNAL','RASTER','GHOST','ARTIFACT','FLICKER','FILM','GLARE','NOISE','PIXEL','CONTRAST'];
 function makeCallsign(seed) {
   let h = 5381 >>> 0;
   for (const c of seed) h = (((h * 33) >>> 0) ^ c.charCodeAt(0)) >>> 0;
   const w1 = CS_TEMP[h % CS_TEMP.length];
   const w2 = CS_OPTIC[(h >>> 4) % CS_OPTIC.length];
-  const hex = (h % 0xffff).toString(16).toUpperCase().padStart(4, '0');
+  const num = (h % 10000).toString().padStart(4, '0');   // digits only — no letters
   const deg = 100 + (h % 900);
-  return `${w1}-${w2}·${deg}°·${hex}`;
+  return `${w1}-${w2}·${deg}°·${num}`;
 }
 const VIEW_GRACE = 15 * 60 * 1000;   // one-time page: re-viewable for 15 min, then sealed
 

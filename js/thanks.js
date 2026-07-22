@@ -21,7 +21,7 @@
 
   // scramble -> settle "decode" reveal (self-contained; not the global glitch)
   function decode(el, text) {
-    const glyphs = '█▓▒░#%&/\\0123456789ABCDEFHKVXZ°·-';
+    const glyphs = '█▓▒░#%&/\\0123456789°·-';   // digits + symbols only — no letters
     let frame = 0; const total = 20;
     const iv = setInterval(() => {
       frame++;
