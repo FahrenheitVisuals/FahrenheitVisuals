@@ -6,7 +6,7 @@
   'use strict';
 
   /* ---------- image manifests (hardcoded so file:// works) ---------- */
-  const PORTFOLIO = ['DSC_0378','DSC_0405','DSC_0452','DSC_0723','DSC_0997','DSC_1215',
+  const PORTFOLIO = ['DSC_0378','DSC_0452','DSC_0723','DSC_0997','DSC_1215',
                      'DSC_1226','DSC_0661','DSC_0667','DSC_1134','DSC_1255','DSC_1257',
                      'DSC_0388','DSC_0120'];
   const LANDSCAPE = ['abandoned','cant-compare','lonely','integrated','pollination','elk-creek',
