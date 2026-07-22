@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAHRENHEIT // 감사 // Transmission Received</title>
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ===== GLOBAL VFX LAYERS ===== -->
+<canvas id="bg-gl"></canvas>
+<div id="bg-drift"></div>
+<canvas id="vfx-canvas"></canvas>
+<div id="vignette"></div>
+<div id="grain"></div>
+<div id="scan"></div>
+
+<main class="thanks-main">
+  <div class="thanks-card reveal in">
+    <div class="fh-top">:// TRANSMISSION RECEIVED · ONE-TIME</div>
+    <h1 data-glitch data-alt="感謝">감사</h1>
+    <div class="subj">Thank You // Fahrenheit</div>
+
+    <p class="thanks-letter">
+      Hello! And thank you so much for your purchase. I will contact you in no less than a few hours.
+      If you would like to reach me, you can find me on Instagram
+      <a href="https://www.instagram.com/fahrenheit.visuals/" target="_blank" rel="noopener">@FahrenheitVisuals</a>,
+      or email me at <a href="mailto:Fahrenheit.Support@gmail.com">Fahrenheit.Support@gmail.com</a>.
+      Please provide your order call-sign below!
+    </p>
+
+    <div class="callsign-box" id="callsign-box">
+      <div class="lab">:// your order call-sign</div>
+      <div class="callsign-code" id="callsign" data-glitch>— — —</div>
+      <div class="callsign-meta" id="callsign-meta">retrieving transmission…</div>
+    </div>
+
+    <div class="thanks-dm">
+      :// <b>Screenshot this page</b> and <b>DM it to me on Instagram</b> @FahrenheitVisuals with your
+      call-sign — that's how I lock in your details fastest. This page is one-time; once you leave, it seals.
+    </div>
+
+    <div class="thanks-contact">
+      :// instagram — <a href="https://www.instagram.com/fahrenheit.visuals/" target="_blank" rel="noopener">@fahrenheit.visuals</a><br>
+      :// email — <a href="mailto:Fahrenheit.Support@gmail.com">Fahrenheit.Support@gmail.com</a><br>
+      :// your call-sign is also on your emailed receipt.
+    </div>
+
+    <div class="seal-note" id="seal-note"></div>
+  </div>
+</main>
+
+<!-- ===== AUDIO HUD ===== -->
+<div id="audio-hud" class="muted" title="mute / unmute ambience">
+  <span class="eq"><i></i><i></i><i></i><i></i><i></i></span>
+  <span>♪ <span class="tk">ambience</span></span>
+</div>
+
+<script src="js/bggl.js"></script>
+<script src="js/vfx.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/main.js"></script>
+<script src="js/thanks.js"></script>
+</body>
+</html>

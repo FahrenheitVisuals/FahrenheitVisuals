@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS bookings (
   weight            INTEGER NOT NULL,        -- day-capacity cost (budget = 3/day)
   package_price     INTEGER NOT NULL,        -- full price, cents
   retainer_amount   INTEGER NOT NULL,        -- 15%, cents
+  callsign          TEXT,                    -- per-order call-sign (shown on thank-you page + receipt)
+  viewed_at         INTEGER,                 -- when the one-time thank-you page was first opened
   status            TEXT NOT NULL DEFAULT 'pending',  -- pending | confirmed | cancelled
   name              TEXT,
   email             TEXT,

@@ -34,6 +34,20 @@ const json = (o, s = 200) => new Response(JSON.stringify(o), {
   status: s, headers: { 'content-type': 'application/json' },
 });
 
+/* ---------- per-order CALL-SIGN (photography · glitchcore · temperature) ---------- */
+const CS_TEMP  = ['EMBER','FROST','SCORCH','KELVIN','THERMAL','IGNIS','CINDER','INFERNO','GLACIER','MAGMA','WICK','ZERO','BLAZE','CHILL'];
+const CS_OPTIC = ['APERTURE','SHUTTER','BOKEH','GRAIN','SILVER','NEGATIVE','EXPOSURE','PRISM','LUMEN','FOCAL','HALIDE','DARKROOM','SCANLINE','STATIC','DATABEND','VOID','SIGNAL','RASTER','GHOST','ARTIFACT'];
+function makeCallsign(seed) {
+  let h = 5381 >>> 0;
+  for (const c of seed) h = (((h * 33) >>> 0) ^ c.charCodeAt(0)) >>> 0;
+  const w1 = CS_TEMP[h % CS_TEMP.length];
+  const w2 = CS_OPTIC[(h >>> 4) % CS_OPTIC.length];
+  const hex = (h % 0xffff).toString(16).toUpperCase().padStart(4, '0');
+  const deg = 100 + (h % 900);
+  return `${w1}-${w2}·${deg}°·${hex}`;
+}
+const VIEW_GRACE = 15 * 60 * 1000;   // one-time page: re-viewable for 15 min, then sealed
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -41,6 +55,7 @@ export default {
     try {
       if (p === '/api/availability' && request.method === 'GET') return availability(url, env);
       if (p === '/api/checkout'     && request.method === 'POST') return checkout(request, env, url);
+      if (p === '/api/order'        && request.method === 'GET')  return order(url, env);
       if (p === '/api/membership'   && request.method === 'POST') return membership(env, url);
       if (p === '/api/webhook'      && request.method === 'POST') return webhook(request, env);
       if (p === '/api/admin'        && request.method === 'GET')  return admin(url, env);
@@ -89,15 +104,16 @@ async function checkout(request, env, url) {
 
   const retainer = Math.round(item.price * RETAINER);
   const id = crypto.randomUUID();
+  const sign = makeCallsign(id);
   await env.DB.prepare(
-    `INSERT INTO bookings (id,date,session_key,session_name,weight,package_price,retainer_amount,status,created_at,expires_at)
-     VALUES (?1,?2,?3,?4,?5,?6,?7,'pending',?8,?9)`
-  ).bind(id, date, key, item.name, item.weight, item.price, retainer, now, now + HOLD_MS).run();
+    `INSERT INTO bookings (id,date,session_key,session_name,weight,package_price,retainer_amount,callsign,status,created_at,expires_at)
+     VALUES (?1,?2,?3,?4,?5,?6,?7,?8,'pending',?9,?10)`
+  ).bind(id, date, key, item.name, item.weight, item.price, retainer, sign, now, now + HOLD_MS).run();
 
   const origin = env.SITE_ORIGIN || url.origin;
   const form = new URLSearchParams();
   form.set('mode', 'payment');
-  form.set('success_url', `${origin}/book?paid=1`);
+  form.set('success_url', `${origin}/thanks?cs={CHECKOUT_SESSION_ID}`);
   form.set('cancel_url', `${origin}/book?cancelled=1`);
   form.set('customer_creation', 'always');
   form.set('line_items[0][quantity]', '1');
@@ -105,7 +121,7 @@ async function checkout(request, env, url) {
   form.set('line_items[0][price_data][unit_amount]', String(retainer));
   form.set('line_items[0][price_data][product_data][name]', `${item.name} — 15% retainer (deposit)`);
   form.set('line_items[0][price_data][product_data][description]',
-    `Secures ${date}. Balance $${((item.price - retainer) / 100).toFixed(2)} invoiced later. Non-refundable.`);
+    `Secures ${date}. Call-sign ${sign}. Balance $${((item.price - retainer) / 100).toFixed(2)} invoiced later. Non-refundable.`);
   form.set('metadata[booking_id]', id);
   form.set('metadata[kind]', 'retainer');
   form.set('payment_intent_data[metadata][booking_id]', id);
@@ -114,6 +130,23 @@ async function checkout(request, env, url) {
   if (s.error) return json({ error: s.error.message }, 502);
   await env.DB.prepare(`UPDATE bookings SET stripe_checkout=?1 WHERE id=?2`).bind(s.id, id).run();
   return json({ url: s.url });
+}
+
+/* ---------- one-time thank-you / call-sign reveal ---------- */
+async function order(url, env) {
+  const cs = url.searchParams.get('cs');
+  if (!cs) return json({ error: 'missing' }, 400);
+  const b = await env.DB.prepare(
+    `SELECT id, session_name, date, callsign, viewed_at FROM bookings WHERE stripe_checkout=?1`
+  ).bind(cs).first();
+  if (!b) return json({ error: 'not_found' }, 404);
+  const now = Date.now();
+  if (!b.viewed_at) {
+    await env.DB.prepare(`UPDATE bookings SET viewed_at=?1 WHERE id=?2`).bind(now, b.id).run();
+  } else if (now - b.viewed_at > VIEW_GRACE) {
+    return json({ sealed: true });                       // one-time: window has closed
+  }
+  return json({ sealed: false, callsign: b.callsign, session_name: b.session_name, date: b.date });
 }
 
 /* ---------- membership subscription ---------- */
